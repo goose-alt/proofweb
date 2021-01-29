@@ -1,0 +1,241 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head><script src="//archive.org/includes/analytics.js?v=cf34f82" type="text/javascript"></script>
+<script type="text/javascript">window.addEventListener('DOMContentLoaded',function(){var v=archive_analytics.values;v.service='wb';v.server_name='wwwb-app100.us.archive.org';v.server_ms=405;archive_analytics.send_pageview({});});</script><script type="text/javascript" src="/_static/js/playback.bundle.js?v=SOX25l-I" charset="utf-8"></script>
+<script type="text/javascript" src="/_static/js/wombat.js?v=cRqOKCOw" charset="utf-8"></script>
+<script type="text/javascript">
+  __wm.init("https://web.archive.org/web");
+  __wm.wombat("http://proofweb.cs.ru.nl:80/install.php","20200719044543","https://web.archive.org/","web","/_static/",
+	      "1595133943");
+</script>
+<link rel="stylesheet" type="text/css" href="/_static/css/banner-styles.css?v=bsmaklHF" />
+<link rel="stylesheet" type="text/css" href="/_static/css/iconochive.css?v=qtvMKcIJ" />
+<!-- End Wayback Rewrite JS Include -->
+
+<link rel="shortcut icon" href="/web/20200719044543im_/http://proofweb.cs.ru.nl/pics/favicon.ico"/>
+<link rel="stylesheet" type="text/css" href="/web/20200719044543cs_/http://proofweb.cs.ru.nl/css/proofweb.css"/>
+<meta content="Web deduction project, ProofWeb, proof assistants"/>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<title>ProofWeb</title>
+</head>
+<body>
+
+<div class="body">
+
+<div class="main">
+
+<h1><a href="https://web.archive.org/web/20200719044543/http://proofweb.cs.ru.nl/"><img src="/web/20200719044543im_/http://proofweb.cs.ru.nl/pics/proofweb.jpg" alt="ProofWeb" border="0"/></a></h1>
+
+<center>
+<table class="nospacing"><tr><td width="228" align="center">
+<a href="https://web.archive.org/web/20200719044543/http://www.fnds.cs.ru.nl/fndswiki/"><img src="/web/20200719044543im_/http://proofweb.cs.ru.nl/pics/ru.jpg" alt="RU" border="0" height="79"/></a>
+</td><td width="228" align="center">
+<a href="https://web.archive.org/web/20200719044543/http://www.surffoundation.nl/smartsite.dws?id=12104&amp;fs=1"><img src="/web/20200719044543im_/http://proofweb.cs.ru.nl/pics/surf.jpg" alt="SURF" border="0" width="150"/></a>
+</td><td width="228" align="center">
+<a href="https://web.archive.org/web/20200719044543/http://www.cs.vu.nl/~tcs/"><img src="/web/20200719044543im_/http://proofweb.cs.ru.nl/pics/vu.jpg" alt="VU" border="0" height="79"/></a>
+</td></tr></table>
+</center>
+
+<br>
+<h1>Installing ProofWeb on your own server</h1>
+
+Install the necessary prerequisite libraries. In Debian/Ubuntu use packages:
+<pre>
+sudo aptitude install libxstr-ocaml-dev libpcre-ocaml-dev libocamlnet-ocaml-dev
+sudo aptitude install libxml-light-ocaml-dev camlp4-extra camlp5 make libapache2-mod-php5
+</pre>
+
+And optionally (for admin interface) install <a href="https://web.archive.org/web/20200719044543/http://martin.jambon.free.fr/ocamlscript.html">OCamlScript</a>
+
+<h3>Automatic installation:</h3>
+<br>
+Download <a href="https://web.archive.org/web/20200719044543/http://proofweb.cs.ru.nl/inst/Makefile">Makefile</a>, put it in an empty directory,
+set CHROOT variable to chroot location (different empty directory, absolute path!) and run 'make':
+<pre>
+CHROOT=/chroot make
+</pre>
+After finishing, 'make' will tell you how to start the installed server.
+<br>
+You should now be able to use ProofWeb on your server!
+<br><br>
+<h3>Manual installation:</h3><br>
+If you want to tweak the installation (e.g. you need a different Coq version) follow these steps
+instead:
+
+<ul style="bla">
+ <li>Prepare an empty chroot:
+<pre>
+mkdir /chroot /chroot/bin
+cp /bin/sh /usr/bin/nice /bin/rm /usr/bin/touch /chroot/bin
+</pre>
+ <li>Get the <a href="https://web.archive.org/web/20200719044543/http://coq.inria.fr/distrib/v8.2/files/coq-8.2.tar.gz">Coq sources version 8.2</a> compile
+   and install in the chroot:
+<pre>
+
+./configure -prefix /coq -fsets all -reals all -coqide no
+make world
+COQINSTALLPREFIX=/chroot/ make install
+</pre>
+ <li>Get the <a href="inst/server.tar.gz">ProofWeb server source</a> untar, compile and install:
+   <pre>
+make
+cp webserve /chroot
+</pre>
+ <li>Get and install the task <a href="inst/verifier.tar.gz">verifyer</a>:
+<pre>
+ocamlopt lexer.ml main.ml -o verify
+cp verify /chroot/bin
+</pre>
+ <li>Install required libraries:
+<pre>
+for j in /chroot/bin/* /chroot/coq/bin/coqtop.opt /chroot/webserve; do
+  for i in `ldd $j | cut -d "(" -f 1 | cut -d "&gt;" -f 2`; do
+    mkdir -p /chroot`dirname $i`
+    cp $i /chroot`dirname $i`
+  done
+done
+</pre>
+ <li>Get the <a href="inst/scripts.tar.gz">configuration scripts</a>, unpack in root of the
+server (WARNING, it overwrites default apache config), edit them to your wishes, and reload
+apache.
+ <li>Get the <a href="inst/static.tar.gz">static content</a> and unpack it in /chroot</li>
+ <li>Start the server:
+<pre>
+sudo /etc/init.d/prover start
+<br>
+You should now be able to use ProofWeb on your server!
+
+</pre>
+ <li>Connect to your host, login as administrator, add normal (student) accounts, tasks and you are set!
+</ul>
+
+<h3>Server Administration:</h3>
+<ul>
+<li>To customize the look of your server edit /var/www/login.php</li>
+<li>To add a course:
+  <ol>
+    <li>Edit /var/www/login.php and add course.
+    <li>Make new directory in /var/www/&lt;coursename&gt; for the course (copy old one, and adjust the look)
+    <li>Add exercises to $(CHROOT)/tasks/&lt;coursename&gt;
+  </ol>
+<li>To add a teacher:
+  <pre>
+    echo -n "password" | md5sum
+    echo "teacher,5f4dcc3b5aa765d61d8327deb882cf99" &gt;&gt; /chroot/admin_logins</pre>
+  And add a teacher login to /var/www/&lt;coursename&gt;/index.php
+<li>To add student logins in a batch you may find the following code useful:
+<pre>
+IFS=,
+while read username password rest ; do 
+  echo $username,$(echo -n $password | md5sum | cut -d " " -f 1),$rest; 
+done &lt; logins</pre>
+<li>Remember to secure your server appropriately.</ul>
+<h3>Binary:</h3>
+<br>
+You can also try the i386 linux <a href="inst/chroot.tar.gz">chroot</a> obtained in the above way.<br>
+You can also try the i386 freebsd <a href="inst/chroot_freebsd.tar.gz">chroot</a>.<br>
+
+You still need to do the last step of unpacking and editing the <a href="inst/scripts.tar.gz">scripts</a>.
+
+
+<ul class="main">
+<li>
+<div id="menu1a">
+<h3>Courses</h3>
+</div>
+
+<div id="menu1b">
+<ul class="main">
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/course.php?course=tt19">Type Theory &amp; Coq 2019-2020</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/course.php?course=tt18">Type Theory &amp; Coq 2018-2019</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/course.php?course=lm18">Logic and Modelling 2017-2018</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/course.php?course=tt17">Type Theory &amp; Coq 2017-2018</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/course.php?course=lm17">Logic and Modelling 2016-2017</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/course.php?course=lv17">Logical Verification 2016-2017</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/course.php?course=tt16">Type Theory &amp; Coq 2016-2017</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/course.php?course=pca16">Proving with Computer Assistance 2016</a></li>
+<!--
+<li><a href="/course.php?course=lm16">Logic and Modelling 2015-2016</a></li>
+<li><a href="/course.php?course=tt15">Type Theory &amp; Coq 2015-2016</a></li>
+<li><a href="/course.php?course=fl15">Formele Logica 2015</a></li>
+<li><a href="/course.php?course=lp15">L&oacute;gica y Programaci&oacute;n 2015</a></li>
+<li><a href="/course.php?course=ld15">Logik i Datalogi 2015</a></li>
+<li><a href="/course.php?course=lv15">Logical Verification 2014-2015</a></li>
+<li><a href="/course.php?course=bb15">Beweren en Bewijzen 2014-2015</a></li>
+<li><a href="/course.php?course=pca15">Proving with Computer Assistance 2015</a></li>
+<li><a href="/course.php?course=lm14">Logic and Modelling 2014-2015</a></li>
+<li><a href="/course.php?course=fl14">Formele Logica 2014</a></li>
+<li><a href="/course.php?course=lcs14">Logic in Computer Science 2014</a></li>
+<li><a href="/course.php?course=ptc14">Proof Theory and Coq 2014</a></li>
+<li><a href="/course.php?course=bb13">Beweren en Bewijzen 2013-2014</a></li>
+<li><a href="/course.php?course=pca14">Proving with Computer Assistance 2014</a></li>
+-->
+</ul>
+</div>
+</li>
+
+<li>
+<div id="menu2a">
+<h3>Provers</h3>
+</div>
+
+<div id="menu2b">
+<ul class="main">
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/prover.php?prover=coq">Coq</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/prover.php?prover=coqtrunk">Coq/Trunk</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/prover.php?prover=isahol">Isabelle/HOL</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/prover.php?prover=isazf">Isabelle/ZF</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/prover.php?prover=matita">Matita (incomplete)</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/prover.php?prover=lego">Lego (incomplete)</a></li>
+<li><a href="/web/20200719044543/http://proofweb.cs.ru.nl/prover.php?prover=plastic">Plastic (incomplete)</a></li>
+</ul>
+</div>
+</li>
+
+<li>
+<div id="menu3a">
+<h3><a href="/web/20200719044543/http://proofweb.cs.ru.nl/wiki.php">MathWiki</a></h3>
+</div>
+</li>
+
+<li>
+<div id="menu4a">
+<!-- <h3><a href="/calc.html">Calculator</a></h3> -->
+<h3>Calculator</h3>
+</div>
+</li>
+</ul>
+
+</div>
+</div>
+
+<script src="/web/20200719044543js_/http://proofweb.cs.ru.nl/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-327893-7";
+urchinTracker();
+</script>
+
+</body>
+</html>
+<!--
+     FILE ARCHIVED ON 04:45:43 Jul 19, 2020 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 20:31:26 Jan 28, 2021.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+-->
+<!--
+playback timings (ms):
+  exclusion.robots: 0.213
+  RedisCDXSource: 0.91
+  PetaboxLoader3.resolve: 108.164 (2)
+  exclusion.robots.policy: 0.198
+  captures_list: 291.894
+  LoadShardBlock: 258.849 (3)
+  CDXLines.iter: 26.543 (3)
+  load_resource: 97.692
+  esindex: 0.019
+  PetaboxLoader3.datanode: 216.096 (4)
+-->
